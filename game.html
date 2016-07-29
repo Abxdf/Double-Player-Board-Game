@@ -1,0 +1,199 @@
+<html>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script type="text/javascript">
+    var canvas;
+    var convasContext;
+
+    var ballX = 50;
+    var ballY = 50;
+    var ballSpeedX = 10;
+    var ballSpeedY = 4;
+    const RADIUS = 10;
+
+    const INITIAL_PADDLE_POS = 250;
+    var paddle1Y = INITIAL_PADDLE_POS;
+    var paddle2Y = INITIAL_PADDLE_POS;
+    const PADDLE_WIDTH = 10;
+    const PADDLE_HEIGHT = 100;
+    const PADDLE_MOVEMENT = 10;
+
+    var keyPressed = {};
+    var score1 = 0;
+    var score2 = 0;
+
+    const SECOND_IN_MILLIS = 1000;
+    const WINNER_SCORE = 10;
+    var isGameWon = false;
+    var winner;
+
+    const UP_KEYCODE = "38";
+    const DOWN_KEYCODE = "40";
+    const W_KEYCODE = "87";
+    const S_KEYCODE = "83";
+
+    window.onload = function() {
+        canvas = document.getElementById('gameCanvas');
+        canvasContext = canvas.getContext('2d');
+        var framesPerSecond = 30;
+        refreshIntervalId = setInterval(function() {
+            updatePaddles();
+            moveEverything();
+            drawBoard();
+        }, SECOND_IN_MILLIS / framesPerSecond);
+        document.body.addEventListener('keydown', function(e) {
+            keyPressed[e.keyCode] = true;
+        });
+        document.body.addEventListener('keyup', function(e) {
+            keyPressed[e.keyCode] = false;
+        });
+        canvas.addEventListener('mousedown', handleMouseClick);
+    }
+
+    function handleMouseClick(evt) {
+        score1 = 0;
+        score2 = 0;
+        winner = "";
+        isGameWon = false;
+        paddle1Y = INITIAL_PADDLE_POS;
+        paddle2Y = INITIAL_PADDLE_POS;
+    }
+
+    function updatePaddles() {
+        if (keyPressed[W_KEYCODE]) {
+            paddle1Y = movePaddleUp(paddle1Y);
+        }
+        if (keyPressed[S_KEYCODE]) {
+            paddle1Y = movePaddleDown(paddle1Y);
+        }
+        if (keyPressed[UP_KEYCODE]) {
+            paddle2Y = movePaddleUp(paddle2Y);
+        }
+        if (keyPressed[DOWN_KEYCODE]) {
+            paddle2Y = movePaddleDown(paddle2Y);
+        }
+    }
+
+    function movePaddleDown(paddle) {
+        paddle = paddle + PADDLE_MOVEMENT;
+        if (paddle + PADDLE_HEIGHT > canvas.height) {
+            paddle = paddle - PADDLE_MOVEMENT;
+        }
+        return paddle;
+    }
+
+    function movePaddleUp(paddle) {
+        paddle = paddle - PADDLE_MOVEMENT;
+        if (paddle < 0) {
+            paddle = paddle + PADDLE_MOVEMENT;
+        }
+        return paddle;
+    }
+
+    function colorCircle(centerX, centerY, radius, drawColor) {
+        canvasContext.fillStyle = drawColor;
+        canvasContext.beginPath();
+        canvasContext.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+        canvasContext.fill();
+    }
+
+    function colorRect(leftX, topY, width, height, drawColor) {
+        canvasContext.fillStyle = drawColor;
+        canvasContext.fillRect(leftX, topY, width, height);
+    }
+
+    function moveEverything() {
+        ballX = ballX + ballSpeedX;
+        ballY = ballY + ballSpeedY;
+        //ball lies in the X range
+        if ((ballY < 0 || ballY > canvas.height) && ballX > 0 && ballX < canvas.width) {
+            ballSpeedY = -ballSpeedY;
+        }
+        // Left Paddle
+        else if (ballX < 0 && ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) {
+            ballSpeedX = -ballSpeedX;
+        }
+        //right paddle
+        else if (ballX > canvas.width && ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) {
+            ballSpeedX = -ballSpeedX;
+        }
+        //reset condition
+        else if (ballX < 0) {
+            score2 += 1;
+            if (score2 == WINNER_SCORE) {
+                winner = "Player 2";
+                isGameWon = true;
+                return;
+            }
+            sleep(1000);
+            resetBall();
+        } else if (ballX > canvas.width) {
+            score1 += 1;
+            if (score1 == WINNER_SCORE) {
+                winner = "Player 1";
+                isGameWon = true;
+                return;
+            }
+            //before reseting the ball, sleep for 1 second
+            sleep(1000);
+            resetBall();
+        }
+    }
+
+    function sleep(milliseconds) {
+        var start = new Date().getTime();
+        while (true) {
+            if ((new Date().getTime() - start) > milliseconds)
+                break;
+        }
+    }
+
+    function resetBall() {
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+        // to change the direction while redirecting
+        var chosenValueX = Math.random() < 0.5 ? true : false;
+        var chosenValueY = Math.random() < 0.5 ? true : false;
+        if (chosenValueX) {
+            ballSpeedX = -ballSpeedX;
+        }
+        if (chosenValueY) {
+            ballSpeedY = -ballSpeedY;
+        }
+    }
+
+    function drawWinBoard(playerName) {
+        colorRect(0, 0, canvas.width, canvas.height, 'black');
+        canvasContext.fillStyle = 'red';
+        canvasContext.font = "20px Arial";
+        canvasContext.fillText(playerName + " has won ", (canvas.width / 2) - 75, (canvas.height / 2) - 10);
+        canvasContext.fillStyle = 'green';
+        canvasContext.font = "10px Arial";
+        canvasContext.fillText("click on mouse to continue...", (canvas.width / 2) - 60, (canvas.height / 2) - 5 + 20);
+
+    }
+
+    function writeScores() {
+        canvasContext.fillStyle = 'white';
+        canvasContext.font = "15px Arial";
+        canvasContext.fillText("Player 1 score " + score1, 100, 100);
+        canvasContext.fillText("Player 2 score " + score2, (canvas.width / 2) + 100, 100);
+    }
+
+    function drawEverything() {
+        colorRect(0, 0, canvas.width, canvas.height, 'black');
+        colorCircle(ballX, ballY, RADIUS, 'red');
+        colorRect(0, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+        colorRect(canvas.width / 2, 0, 1, canvas.height, 'white');
+        colorRect(canvas.width - PADDLE_WIDTH, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+        writeScores();
+    }
+
+    function drawBoard() {
+        if (!isGameWon) {
+            drawEverything();
+        } else {
+            drawWinBoard(winner);
+        }
+    }
+</script>
+</html>
