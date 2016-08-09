@@ -1,5 +1,5 @@
 # Double-Player-Board-Game
-[Inspired by Chris Deleon's "Hands On Intro To Game Programming"](https://www.udemy.com/code-your-first-game/learn/), developed a double-player version of the Board Game.
+[Inspired by Chris Deleon's "Hands On Intro To Game Programming Udemy Course"](https://www.udemy.com/code-your-first-game/learn/), developed a double-player version of the Board Game.
 
 Are you feeling confused because you don't know how to start 'Game Development'??? Then follow Chris Deleon's "Hands On Intro To Game Programming" on Udemy. Even though I have already developed a couple of game in Java, his insights were very useful and use of `JavaScript` and `canvas` to develop a game makes it so much fun.
 
